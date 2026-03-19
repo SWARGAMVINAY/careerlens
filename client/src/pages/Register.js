@@ -1,0 +1,84 @@
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
+
+function Register() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: ''
+  })
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) navigate('/dashboard')
+  }, [navigate])
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const res = await axios.post('https://careerlens-backend-otsv.onrender.com/api/auth/register', formData)
+      localStorage.setItem('token', res.data.token)
+      navigate('/profile')
+    } catch (error) {
+      alert(error.response.data.message)
+    }
+  }
+
+  return (
+    <div style={{ maxWidth: '400px', margin: '100px auto', padding: '20px' }}>
+      <h2>Create Account</h2>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '15px' }}>
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            style={{ width: '100%', padding: '10px', fontSize: '16px', borderRadius: '5px', border: '1px solid #ddd' }}
+            required
+          />
+        </div>
+        <div style={{ marginBottom: '15px' }}>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            style={{ width: '100%', padding: '10px', fontSize: '16px', borderRadius: '5px', border: '1px solid #ddd' }}
+            required
+          />
+        </div>
+        <div style={{ marginBottom: '15px' }}>
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            style={{ width: '100%', padding: '10px', fontSize: '16px', borderRadius: '5px', border: '1px solid #ddd' }}
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          style={{ width: '100%', padding: '10px', fontSize: '16px', backgroundColor: '#4F46E5', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+        >
+          Register
+        </button>
+      </form>
+      <p style={{ textAlign: 'center', marginTop: '15px' }}>
+        Already have an account? <a href="/login">Login</a>
+      </p>
+    </div>
+  )
+}
+
+export default Register
