@@ -138,4 +138,45 @@ const listModels = async (req, res) => {
     }
 }
 
-module.exports = { getSkillGapAndRoadmap, getInterviewQuestions, evaluateAnswers, scoreResume, listModels }
+const getInternships = async (req, res) => {
+    try {
+        const profile = await Profile.findOne({ user: req.user.id })
+        if (!profile) return res.status(404).json({ message: 'Profile not found' })
+
+        const prompt = `
+        Generate 5 realistic internship listings for an Indian college student.
+        Student Profile:
+        - Branch: ${profile.branch}
+        - Skills: ${profile.skills.join(', ')}
+        - Target Role: ${profile.targetRole}
+        - Experience: ${profile.experience}
+
+        Return only JSON:
+        {
+            "internships": [
+                {
+                    "title": "Frontend Developer Intern",
+                    "company": "TechStartup Pvt Ltd",
+                    "location": "Bangalore (Remote)",
+                    "duration": "3 months",
+                    "stipend": "₹10,000/month",
+                    "type": "Remote",
+                    "description": "Work on real React projects with a growing startup team.",
+                    "skills": ["HTML", "CSS", "React"],
+                    "applyLink": "https://internshala.com"
+                }
+            ]
+        }
+        Return only JSON, no extra text.
+        `
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+        const result = await model.generateContent(prompt)
+        const text = result.response.text()
+        const clean = text.replace(/```json|```/g, '').trim()
+        const data = JSON.parse(clean)
+        res.status(200).json(data)
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error })
+    }
+}
+module.exports = { getSkillGapAndRoadmap, getInterviewQuestions, evaluateAnswers, scoreResume, listModels, getInternships }
